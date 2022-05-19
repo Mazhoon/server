@@ -73,6 +73,7 @@ use OC\Files\Filesystem;
 use OC\Share20\Hooks;
 use OCP\User\Events\UserChangedEvent;
 use function OCP\Log\logger;
+use Composer\Autoload\ClassLoader;
 
 require_once 'public/Constants.php';
 
@@ -124,8 +125,7 @@ class OC {
 	 */
 	public static $loader = null;
 
-	/** @var \Composer\Autoload\ClassLoader $composerAutoloader */
-	public static $composerAutoloader = null;
+	public static ?ClassLoader $composerAutoloader = null;
 
 	/**
 	 * @var \OC\Server
@@ -593,7 +593,7 @@ class OC {
 		self::$CLI = (php_sapi_name() == 'cli');
 
 		// Add default composer PSR-4 autoloader
-		self::$composerAutoloader = require_once OC::$SERVERROOT . '/lib/composer/autoload.php';
+		self::$composerAutoloader = require OC::$SERVERROOT . '/lib/composer/autoload.php';
 
 		try {
 			self::initPaths();

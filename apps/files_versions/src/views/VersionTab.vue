@@ -19,6 +19,7 @@
 	<ul>
 		<!-- Do not display current version if the most recent version has the same mtime -->
 		<Version v-if="!loading && currentVersion.mtime !== orderedVersions[0].mtime"
+			:key="currentVersion.mtime"
 			:version="currentVersion"
 			:is-current="true"
 			@name-update="handleCreateVersion" />

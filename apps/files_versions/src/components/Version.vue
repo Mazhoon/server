@@ -18,7 +18,7 @@
 <template>
 	<div>
 		<NcListItem class="version"
-			:title="versionTitle"
+			:title="versionLabel"
 			:href="version.url">
 			<template #icon>
 				<img lazy="true"
@@ -160,16 +160,16 @@ export default {
 		}
 	},
 	computed: {
-		versionTitle() {
-			if (this.isCurrent && this.version.title === '') {
+		versionLabel() {
+			if (this.isCurrent && this.version.label === '') {
 				return translate('files_versions', 'Current version')
 			}
 
-			if (this.isFirstVersion && this.version.title === '') {
+			if (this.isFirstVersion && this.version.label === '') {
 				return translate('files_versions', 'Initial version')
 			}
 
-			return this.version.title
+			return this.version.label
 		},
 	},
 	methods: {
@@ -187,7 +187,7 @@ export default {
 		setVersionName(name) {
 			this.formVersionNameValue = name
 			this.showVersionNameForm = false
-			this.$emit('name-update', this.version, name)
+			this.$emit('label-update', this.version, name)
 		},
 
 		deleteVersion() {

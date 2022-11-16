@@ -441,6 +441,12 @@ class DIContainer extends SimpleContainer implements IAppContainer {
 		if ($name === 'AppName' || $name === 'appName') {
 			return $this->appName;
 		}
+
+		$isServerClass = strpos($name, 'OCP\\') === 0 || strpos($name, 'OC\\') === 0;
+		if ($isServerClass && !$this->has($name)) {
+			return $this->getServer()->query($name, $autoload);
+		}
+
 		try {
 			return $this->queryNoFallback($name);
 		} catch (QueryException $firstException) {

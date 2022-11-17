@@ -27,7 +27,7 @@ namespace OCA\Files_Versions;
 use OCP\Capabilities\ICapability;
 
 class Capabilities implements ICapability {
-	
+
 	/**
 	 * Return this classes capabilities
 	 *
@@ -36,7 +36,8 @@ class Capabilities implements ICapability {
 	public function getCapabilities() {
 		return [
 			'files' => [
-				'versioning' => true
+				'versioning' => true,
+				'version_labeling' => true
 			]
 		];
 	}

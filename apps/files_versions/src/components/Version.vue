@@ -30,20 +30,19 @@
 			</template>
 			<template #subtitle>
 				<div class="version__info">
-					<span>{{ version.mtime | humanDateFromNow }}</span>
+					<span v-tooltip="formattedDate">{{ version.mtime | humanDateFromNow }}</span>
 					<!-- Separate dot to improve alignement -->
 					<span class="version__info__size">•</span>
 					<span class="version__info__size">{{ version.size | humanReadableSize }}</span>
 				</div>
 			</template>
 			<template #actions>
-				<NcActionButton v-if="experimental"
-					:close-after-click="true"
-					@click="openVersionNameModal">
+				<NcActionButton :close-after-click="true"
+					@click="openVersionLabelModal">
 					<template #icon>
 						<Pencil :size="22" />
 					</template>
-					{{ version.title === '' ? t('files_versions', 'Name this version') : t('files_versions', 'Edit version name') }}
+					{{ version.label === '' ? t('files_versions', 'Name this version') : t('files_versions', 'Edit version name') }}
 				</NcActionButton>
 				<NcActionButton v-if="!isCurrent"
 					:close-after-click="true"
@@ -61,7 +60,7 @@
 					</template>
 					{{ t('files_versions', 'Download version') }}
 				</NcActionLink>
-				<NcActionButton v-if="experimental && !isCurrent"
+				<NcActionButton v-if="!isCurrent"
 					:close-after-click="true"
 					@click="deleteVersion">
 					<template #icon>
@@ -71,11 +70,11 @@
 				</NcActionButton>
 			</template>
 		</NcListItem>
-		<NcModal v-if="showVersionNameForm"
+		<NcModal v-if="showVersionLabelForm"
 			:title="t('files_versions', 'Name this version')"
-			@close="showVersionNameForm = false">
+			@close="showVersionLabelForm = false">
 			<form class="version-name-modal"
-				@submit="setVersionName(formVersionNameValue)">
+				@submit="setVersionLabel(formVersionNameValue)">
 				<label>
 					<div class="version-name-modal__title">{{ t('photos', 'Version name') }}</div>
 					<NcTextField ref="nameInput"
@@ -89,7 +88,7 @@
 				</div>
 
 				<div class="version-name-modal__actions">
-					<NcButton :disabled="formVersionNameValue.trim().length === 0" @click="setVersionName('')">
+					<NcButton :disabled="formVersionNameValue.trim().length === 0" @click="setVersionLabel('')">
 						{{ t('files_versions', 'Remove version name') }}
 					</NcButton>
 					<NcButton type="primary" native-type="submit">
@@ -110,7 +109,7 @@ import Download from 'vue-material-design-icons/Download.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Check from 'vue-material-design-icons/Check.vue'
 import Delete from 'vue-material-design-icons/Delete'
-import { NcActionButton, NcActionLink, NcListItem, NcModal, NcButton, NcTextField } from '@nextcloud/vue'
+import { NcActionButton, NcActionLink, NcListItem, NcModal, NcButton, NcTextField, Tooltip } from '@nextcloud/vue'
 import moment from '@nextcloud/moment'
 import { translate } from '@nextcloud/l10n'
 
@@ -128,6 +127,11 @@ export default {
 		Pencil,
 		Check,
 		Delete,
+	},
+	directives: {
+		// TODO: not working
+		// https://nextcloud-vue-components.netlify.app/#/Directives
+		tooltip: Tooltip,
 	},
 	filters: {
 		humanReadableSize(bytes) {
@@ -154,9 +158,8 @@ export default {
 	},
 	data() {
 		return {
-			showVersionNameForm: false,
-			formVersionNameValue: this.version.title,
-			experimental: OC.experimental ?? false,
+			showVersionLabelForm: false,
+			formVersionNameValue: this.version.label,
 		}
 	},
 	computed: {
@@ -173,8 +176,8 @@ export default {
 		},
 	},
 	methods: {
-		openVersionNameModal() {
-			this.showVersionNameForm = true
+		openVersionLabelModal() {
+			this.showVersionLabelForm = true
 			this.$nextTick(() => {
 				this.$refs.nameInput.$el.getElementsByTagName('input')[0].focus()
 			})
@@ -184,7 +187,7 @@ export default {
 			this.$emit('restore', this.version)
 		},
 
-		setVersionName(name) {
+		setVersionLabel(name) {
 			this.formVersionNameValue = name
 			this.showVersionNameForm = false
 			this.$emit('label-update', this.version, name)
@@ -192,6 +195,10 @@ export default {
 
 		deleteVersion() {
 			this.$emit('delete', this.version)
+		},
+
+		formattedDate() {
+			return moment(this.version.mtime)
 		},
 	},
 }

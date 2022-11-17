@@ -96,4 +96,11 @@ interface IVersionBackend {
 	 * @since 15.0.0
 	 */
 	public function getVersionFile(IUser $user, FileInfo $sourceFile, $revision): File;
+
+	/**
+	 * Set the label for a version.
+	 *
+	 * @since 26.0.0
+	 */
+	public function setVersionLabel(Version $version, string $label): void;
 }

@@ -70,6 +70,7 @@ class VersionFile implements IFile {
 	}
 
 	public function delete() {
+		// TODO: implement version deletion
 		throw new Forbidden();
 	}
 
@@ -79,6 +80,14 @@ class VersionFile implements IFile {
 
 	public function setName($name) {
 		throw new Forbidden();
+	}
+
+	public function getLabel(): string {
+		return (string)$this->version->getLabel();
+	}
+
+	public function setLabel($label): void {
+		$this->versionManager->setVersionLabel($this->version, $label);
 	}
 
 	public function getLastModified(): int {

@@ -110,4 +110,14 @@ class VersionManager implements IVersionManager {
 	public function useBackendForStorage(IStorage $storage): bool {
 		return false;
 	}
+
+	/**
+	 * Set the label for a version.
+	 *
+	 * @since 26.0.0
+	 */
+	public function setVersionLabel(Version $version, string $label): void {
+		$backend = $this->getBackendForStorage($version->getSourceFile()->getStorage());
+		$backend->setVersionLabel($version, $label);
+	}
 }

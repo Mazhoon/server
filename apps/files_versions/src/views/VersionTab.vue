@@ -28,7 +28,7 @@
 			:version="version"
 			:is-first-version="version === orderedVersions[orderedVersions.length-1]"
 			@restore="handleRestore"
-			@name-update="handleNameUpdate"
+			@label-update="handleLabelUpdate"
 			@delete="handleDelete" />
 	</ul>
 </template>
@@ -37,7 +37,7 @@
 import { generateUrl } from '@nextcloud/router'
 import { joinPaths } from '@nextcloud/paths'
 import { showError, showSuccess } from '@nextcloud/dialogs'
-import { fetchVersions, deleteVersion, restoreVersion, setVersionName, createVersion } from '../utils/versions.js'
+import { fetchVersions, deleteVersion, restoreVersion, setVersionLabel, createVersion } from '../utils/versions.js'
 import Version from '../components/Version.vue'
 
 export default {
@@ -138,14 +138,14 @@ export default {
 		 * @param {import('../utils/versions.js').Version} version
 		 * @param {string} newName
 		 */
-		async handleNameUpdate(version, newName) {
-			const oldTitle = version.title
-			version.title = newName
+		async handleLabelUpdate(version, newName) {
+			const oldLabel = version.label
+			version.label = newName
 
 			try {
-				await setVersionName(version, newName)
+				await setVersionLabel(version, newName)
 			} catch (exception) {
-				version.title = oldTitle
+				version.label = oldLabel
 				showError(t('files_versions', 'Could not set version name'))
 			}
 		},

@@ -30,7 +30,7 @@ import moment from '@nextcloud/moment'
 /**
  * @typedef {object} Version
  * @property {string} fileId - The id of the file associated to the version.
- * @property {string} title - 'Current version' or ''
+ * @property {string} label - 'Current version' or ''
  * @property {string} fileName - File name relative to the version DAV endpoint
  * @property {string} mimeType - Empty for the current version, else the actual mime type of the version
  * @property {string} size - Human readable size
@@ -49,11 +49,12 @@ export async function fetchVersions(fileInfo) {
 	const path = `/versions/${getCurrentUser()?.uid}/versions/${fileInfo.id}`
 
 	try {
-		/** @type {import('webdav').FileStat[]} */
+		/** @type {import('webdav').ResponseDataDetailed<import('webdav').FileStat[]>} */
 		const response = await client.getDirectoryContents(path, {
 			data: davRequest,
+			details: true,
 		})
-		return response
+		return response.data
 			// Filter out root
 			.filter(({ mime }) => mime !== '')
 			.map(version => formatVersion(version, fileInfo))
@@ -91,7 +92,7 @@ export async function restoreVersion(version) {
 function formatVersion(version, fileInfo) {
 	return {
 		fileId: fileInfo.id,
-		title: '',
+		label: version.props['version-label'],
 		fileName: version.filename,
 		mimeType: version.mime,
 		size: version.size,
@@ -115,15 +116,31 @@ export async function createVersion(version) {
 
 /**
  * @param {Version} version
- * @param {string} newName
+ * @param {string} newLabel
  */
-export async function setVersionName(version, newName) {
-	// await fetch('POST', '/setVersionName')
+export async function setVersionLabel(version, newLabel) {
+	return await client.customRequest(
+		version.fileName,
+		{
+			method: 'PROPPATCH',
+			data: `<?xml version="1.0"?>
+					<d:propertyupdate xmlns:d="DAV:"
+						xmlns:oc="http://owncloud.org/ns"
+						xmlns:nc="http://nextcloud.org/ns"
+						xmlns:ocs="http://open-collaboration-services.org/ns">
+					<d:set>
+						<d:prop>
+							<nc:version-label>${newLabel}</nc:version-label>
+						</d:prop>
+					</d:set>
+					</d:propertyupdate>`,
+		}
+	)
 }
 
 /**
  * @param {Version} version
  */
 export async function deleteVersion(version) {
-	// await fetch('DELETE', '/version')
+	await client.deleteFile(version.fileName)
 }

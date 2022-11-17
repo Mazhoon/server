@@ -28,7 +28,10 @@ namespace OCA\Files_Versions\Versions;
 
 use OC\Files\View;
 use OCA\Files_Sharing\SharedStorage;
+use OCA\Files_Versions\Db\VersionEntity;
+use OCA\Files_Versions\Db\VersionsMapper;
 use OCA\Files_Versions\Storage;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Files\File;
 use OCP\Files\FileInfo;
 use OCP\Files\Folder;
@@ -43,10 +46,16 @@ class LegacyVersionsBackend implements IVersionBackend {
 	private $rootFolder;
 	/** @var IUserManager */
 	private $userManager;
+	private VersionsMapper $versionsMapper;
 
-	public function __construct(IRootFolder $rootFolder, IUserManager $userManager) {
+	public function __construct(
+		IRootFolder $rootFolder,
+		IUserManager $userManager,
+		VersionsMapper $versionsMapper
+	) {
 		$this->rootFolder = $rootFolder;
 		$this->userManager = $userManager;
+		$this->versionsMapper = $versionsMapper;
 	}
 
 	public function useBackendForStorage(IStorage $storage): bool {
@@ -64,12 +73,21 @@ class LegacyVersionsBackend implements IVersionBackend {
 		$nodes = $userFolder->getById($file->getId());
 		$file2 = array_pop($nodes);
 		$versions = Storage::getVersions($user->getUID(), $userFolder->getRelativePath($file2->getPath()));
+		$versionsLabels = array_reduce(
+			$this->versionsMapper->findAllVersionsForFileId($file->getId()),
+			function ($carry, VersionEntity $item) {
+				$carry[$item->getTimestamp()] = $item->getLabel();
+				return $carry;
+			},
+			[]
+		);
 
-		return array_map(function (array $data) use ($file, $user) {
+		return array_map(function (array $data) use ($file, $user, $versionsLabels) {
 			return new Version(
 				(int)$data['version'],
 				(int)$data['version'],
 				$data['name'],
+				$versionsLabels[(int)$data['version']] ?? '',
 				(int)$data['size'],
 				$data['mimetype'],
 				$data['path'],
@@ -124,5 +142,31 @@ class LegacyVersionsBackend implements IVersionBackend {
 		/** @var File $file */
 		$file = $versionFolder->get($userFolder->getRelativePath($sourceFile->getPath()) . '.v' . $revision);
 		return $file;
+	}
+
+	/**
+	 * Set the label for a version.
+	 *
+	 * @since 26.0.0
+	 */
+	public function setVersionLabel(IVersion $version, string $label): void {
+		try {
+			$versionEntity = $this->versionsMapper->findVersionForFileId(
+				$version->getSourceFile()->getId(),
+				$version->getSourceFile()->getMtime()
+			);
+			$versionEntity->setLabel($label);
+			$this->versionsMapper->update($versionEntity);
+		} catch(DoesNotExistException $ex) {
+			// Fallback if the DB does not contains the version entry.
+			$versionEntity = new VersionEntity();
+			$versionEntity->setFileId($version->getSourceFile()->getId());
+			// TODO: check that the mtime is the version's one.
+			$versionEntity->setTimestamp($version->getTimestamp());
+			$versionEntity->setLabel($label);
+			// TODO: remove or keep
+			// $versionEntity->setLabel($versionEntity->setAuthor($currentUserId));
+			$this->versionsMapper->insert($versionEntity);
+		}
 	}
 }

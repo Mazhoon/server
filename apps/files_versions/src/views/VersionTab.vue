@@ -29,6 +29,7 @@
 			:is-first-version="version === orderedVersions[orderedVersions.length-1]"
 			@restore="handleRestore"
 			@label-update="handleLabelUpdate"
+			@create-version="handleCreateVersion"
 			@delete="handleDelete" />
 	</ul>
 </template>
@@ -156,10 +157,10 @@ export default {
 		 * @param {import('../utils/versions.js').Version} version
 		 * @param {string} newName
 		 */
-		async handleCreateVersion(version, newName) {
+		async handleCreateVersion(version, label) {
 			const currentVersion = {
 				...version,
-				title: newName,
+				title: label,
 			}
 
 			this.versions.push(currentVersion)

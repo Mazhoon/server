@@ -838,7 +838,7 @@ $input-padding: 6px;
 			margin: $margin;
 			margin-bottom: $margin - 4px;
 			margin-left: $margin + $input-padding;
-			color: var(--color-primary-element);
+			color: var(--color-text-maxcontrast);
 			font-weight: normal;
 			font-size: 18px;
 		}

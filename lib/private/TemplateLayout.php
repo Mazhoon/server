@@ -332,17 +332,17 @@ class TemplateLayout extends \OC_Template {
 	 * @return array
 	 */
 	public static function findStylesheetFiles($styles, $compileScss = true) {
-		// Read the selected theme from the config file
-		$theme = \OC_Util::getTheme();
-
-		$locator = new \OC\Template\CSSResourceLocator(
-			\OC::$server->get(LoggerInterface::class),
-			$theme,
-			[ \OC::$SERVERROOT => \OC::$WEBROOT ],
-			[ \OC::$SERVERROOT => \OC::$WEBROOT ],
-		);
-		$locator->find($styles);
-		return $locator->getResources();
+		static $cssLocator;
+		if (!$cssLocator) {
+			$cssLocator = new \OC\Template\CSSResourceLocator(
+				\OC::$server->get(LoggerInterface::class),
+				\OC_Util::getTheme(),
+				[\OC::$SERVERROOT => \OC::$WEBROOT],
+				[\OC::$SERVERROOT => \OC::$WEBROOT],
+			);
+		}
+		$cssLocator->find($styles);
+		return $cssLocator->getResources();
 	}
 
 	/**
@@ -366,18 +366,18 @@ class TemplateLayout extends \OC_Template {
 	 * @return array
 	 */
 	public static function findJavascriptFiles($scripts) {
-		// Read the selected theme from the config file
-		$theme = \OC_Util::getTheme();
-
-		$locator = new \OC\Template\JSResourceLocator(
-			\OC::$server->get(LoggerInterface::class),
-			$theme,
-			[ \OC::$SERVERROOT => \OC::$WEBROOT ],
-			[ \OC::$SERVERROOT => \OC::$WEBROOT ],
-			\OC::$server->query(JSCombiner::class)
+		static $jsLocator = null;
+		if (!$jsLocator) {
+			$jsLocator = new \OC\Template\JSResourceLocator(
+				\OC::$server->get(LoggerInterface::class),
+				\OC_Util::getTheme(),
+				[\OC::$SERVERROOT => \OC::$WEBROOT],
+				[\OC::$SERVERROOT => \OC::$WEBROOT],
+				\OC::$server->query(JSCombiner::class)
 			);
-		$locator->find($scripts);
-		return $locator->getResources();
+		}
+		$jsLocator->find($scripts);
+		return $jsLocator->getResources();
 	}
 
 	/**
